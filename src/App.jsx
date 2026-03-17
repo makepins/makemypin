@@ -35,7 +35,7 @@ const TEMPLATES = [
   { id: "quad",       name: "Quad" },
 ];
 
-const W = 400, H = 711;
+const W = 1000, H = 1778;
 
 function hexToRgba(hex, a) {
   const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
@@ -573,7 +573,7 @@ export default function App() {
         {/* Canvas */}
         <div style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:20, gap:8, minWidth:0}}>
           <canvas ref={canvasRef} width={W} height={H}
-            style={{borderRadius:12, display:"block", boxShadow:"0 8px 40px rgba(0,0,0,0.15)", cursor:"grab", maxWidth:"100%", height:"auto"}}
+            style={{borderRadius:12, display:"block", boxShadow:"0 8px 40px rgba(0,0,0,0.15)", cursor:"grab", width:"100%", maxWidth:"400px", height:"auto"}}
             onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp}
             onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onMouseUp} />
           <p style={{fontSize:11,color:"#aaa"}}>{template==="split"||template==="quad" ? "Drag each photo to reposition" : "Live preview · 9:16"}</p>
