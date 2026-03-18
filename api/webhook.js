@@ -1,24 +1,19 @@
-import Stripe from 'stripe';
-import { createClerkClient } from '@clerk/backend';
+const Stripe = require('stripe');
+const { createClerkClient } = require('@clerk/backend');
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
-
-export const config = { api: { bodyParser: false } };
-
-async function getRawBody(req) {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    req.on('data', chunk => chunks.push(chunk));
-    req.on('end', () => resolve(Buffer.concat(chunks)));
-    req.on('error', reject);
-  });
-}
-
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const rawBody = await getRawBody(req);
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+
+  const chunks = [];
+  await new Promise((resolve, reject) => {
+    req.on('data', chunk => chunks.push(chunk));
+    req.on('end', resolve);
+    req.on('error', reject);
+  });
+  const rawBody = Buffer.concat(chunks);
   const sig = req.headers['stripe-signature'];
 
   let event;
