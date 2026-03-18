@@ -460,7 +460,19 @@ export default function App() {
   const [subscribing, setSubscribing] = useState(false);
   const s = { fontFamily:"'Montserrat',sans-serif", minHeight:"100vh", background:"#f9f9f7", color:"#1a1a1a" };
 
-  const isSubscribed = user?.publicMetadata?.subscribed === true;
+  // Check subscription from Clerk metadata OR from Stripe success redirect
+  const justPaid = new URLSearchParams(window.location.search).get("subscribed") === "true";
+  const isSubscribed = user?.publicMetadata?.subscribed === true || justPaid;
+
+  // If just paid, reload user data from Clerk to get updated metadata
+  useEffect(() => {
+    if (justPaid && user) {
+      // Clean URL without reloading
+      window.history.replaceState({}, "", "/");
+      // Reload user to get fresh metadata after webhook
+      setTimeout(() => user.reload(), 2000);
+    }
+  }, [justPaid, user]);
 
   const handleSubscribe = async () => {
     setSubscribing(true);
