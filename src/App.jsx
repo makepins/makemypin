@@ -296,7 +296,7 @@ function TemplateThumb({ tid, onClick }) {
     <div onClick={onClick} style={{ cursor:"pointer", borderRadius:8, overflow:"hidden", border:"2px solid #e5e5e5", transition:"all 0.15s" }}
       onMouseEnter={e=>e.currentTarget.style.borderColor="#333"}
       onMouseLeave={e=>e.currentTarget.style.borderColor="#e5e5e5"}>
-      <canvas ref={ref} width={80} height={142} style={{display:"block",width:"100%"}} />
+      <canvas ref={ref} width={240} height={426} style={{display:"block",width:"100%"}} />
       <div style={{fontSize:10,textAlign:"center",padding:"5px 4px",color:"#666",fontWeight:500}}>{tid.charAt(0).toUpperCase()+tid.slice(1)}</div>
     </div>
   );
