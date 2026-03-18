@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useUser, SignIn, SignUp, UserButton } from "@clerk/clerk-react";
 
 const GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Montserrat:wght@400;500;700;900&family=League+Spartan:wght@400;700;900&family=Playfair+Display:wght@400;700;900&family=Poppins:wght@400;500;700;900&family=Righteous&family=DM+Serif+Display&display=swap";
 
@@ -454,13 +455,45 @@ export default function App() {
   };
 
   const isMobile = useWindowSize();
+  const { isSignedIn, isLoaded } = useUser();
+  const [authScreen, setAuthScreen] = useState("signin");
   const s = { fontFamily:"'Montserrat',sans-serif", minHeight:"100vh", background:"#f9f9f7", color:"#1a1a1a" };
+
+  // Show loading state while Clerk initializes
+  if (!isLoaded) return (
+    <div style={{...s, display:"flex", alignItems:"center", justifyContent:"center"}}>
+      <div style={{fontSize:13, color:"#999"}}>Loading...</div>
+    </div>
+  );
+
+  // Show auth screen if not signed in
+  if (!isSignedIn) return (
+    <div style={{...s, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"100vh", gap:20, padding:20}}>
+      <div style={{textAlign:"center", marginBottom:8}}>
+        <div style={{fontSize:28, fontWeight:700, fontFamily:"'League Spartan',sans-serif", letterSpacing:1}}>Make My Pin</div>
+        <div style={{fontSize:13, color:"#888", marginTop:4}}>Create beautiful Pinterest pins in seconds</div>
+      </div>
+      {authScreen === "signin"
+        ? <SignIn afterSignInUrl="/" />
+        : <SignUp afterSignUpUrl="/" />
+      }
+      <div style={{fontSize:12, color:"#888"}}>
+        {authScreen === "signin"
+          ? <span>Don't have an account? <button onClick={()=>setAuthScreen("signup")} style={{background:"none",border:"none",color:"#1a56ff",cursor:"pointer",fontSize:12,fontWeight:600}}>Sign up</button></span>
+          : <span>Already have an account? <button onClick={()=>setAuthScreen("signin")} style={{background:"none",border:"none",color:"#1a56ff",cursor:"pointer",fontSize:12,fontWeight:600}}>Sign in</button></span>
+        }
+      </div>
+    </div>
+  );
 
   if (screen === "select") return (
     <div style={s}>
-      <div style={{padding:"24px 20px 16px", borderBottom:"1px solid #eee", background:"#fff"}}>
-        <div style={{fontSize:22, fontWeight:700, fontFamily:"'League Spartan',sans-serif", letterSpacing:1}}>Make My Pin</div>
-        <div style={{fontSize:13, color:"#888", marginTop:4}}>Choose a template to get started</div>
+      <div style={{padding:"24px 20px 16px", borderBottom:"1px solid #eee", background:"#fff", display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+        <div>
+          <div style={{fontSize:22, fontWeight:700, fontFamily:"'League Spartan',sans-serif", letterSpacing:1}}>Make My Pin</div>
+          <div style={{fontSize:13, color:"#888", marginTop:4}}>Choose a template to get started</div>
+        </div>
+        <UserButton afterSignOutUrl="/" />
       </div>
       <div style={{padding:20}}>
         <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))", gap:12, maxWidth:700, margin:"0 auto"}}>
@@ -472,9 +505,12 @@ export default function App() {
 
   return (
     <div style={s}>
-      <div style={{padding:"12px 16px", borderBottom:"1px solid #eee", background:"#fff", display:"flex", alignItems:"center", gap:12}}>
-        <button onClick={()=>setScreen("select")} style={{background:"none",border:"1px solid #ddd",borderRadius:8,padding:"6px 12px",fontSize:12,cursor:"pointer",color:"#666"}}>← Templates</button>
-        <span style={{fontSize:14,fontWeight:600,fontFamily:"'League Spartan',sans-serif"}}>{TEMPLATES.find(t=>t.id===template)?.name}</span>
+      <div style={{padding:"12px 16px", borderBottom:"1px solid #eee", background:"#fff", display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+        <div style={{display:"flex", alignItems:"center", gap:12}}>
+          <button onClick={()=>setScreen("select")} style={{background:"none",border:"1px solid #ddd",borderRadius:8,padding:"6px 12px",fontSize:12,cursor:"pointer",color:"#666"}}>← Templates</button>
+          <span style={{fontSize:14,fontWeight:600,fontFamily:"'League Spartan',sans-serif"}}>{TEMPLATES.find(t=>t.id===template)?.name}</span>
+        </div>
+        <UserButton afterSignOutUrl="/" />
       </div>
 
       <div style={{display:"flex", flexDirection: isMobile ? "column" : "row", gap:0}}>
