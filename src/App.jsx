@@ -455,33 +455,68 @@ export default function App() {
   };
 
   const isMobile = useWindowSize();
-  const { isSignedIn, isLoaded } = useUser();
+  const { isSignedIn, isLoaded, user } = useUser();
   const [authScreen, setAuthScreen] = useState("signin");
+  const [subscribing, setSubscribing] = useState(false);
   const s = { fontFamily:"'Montserrat',sans-serif", minHeight:"100vh", background:"#f9f9f7", color:"#1a1a1a" };
 
-  // Show loading state while Clerk initializes
+  const isSubscribed = user?.publicMetadata?.subscribed === true;
+
+  const handleSubscribe = async () => {
+    setSubscribing(true);
+    try {
+      const res = await fetch("/api/create-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          email: user.primaryEmailAddress?.emailAddress,
+        }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch (err) { console.error(err); }
+    setSubscribing(false);
+  };
+
   if (!isLoaded) return (
     <div style={{...s, display:"flex", alignItems:"center", justifyContent:"center"}}>
       <div style={{fontSize:13, color:"#999"}}>Loading...</div>
     </div>
   );
 
-  // Show auth screen if not signed in
   if (!isSignedIn) return (
     <div style={{...s, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"100vh", gap:20, padding:20}}>
       <div style={{textAlign:"center", marginBottom:8}}>
         <div style={{fontSize:28, fontWeight:700, fontFamily:"'League Spartan',sans-serif", letterSpacing:1}}>Make My Pin</div>
         <div style={{fontSize:13, color:"#888", marginTop:4}}>Create beautiful Pinterest pins in seconds</div>
       </div>
-      {authScreen === "signin"
-        ? <SignIn afterSignInUrl="/" />
-        : <SignUp afterSignUpUrl="/" />
-      }
+      {authScreen === "signin" ? <SignIn afterSignInUrl="/" /> : <SignUp afterSignUpUrl="/" />}
       <div style={{fontSize:12, color:"#888"}}>
         {authScreen === "signin"
           ? <span>Don't have an account? <button onClick={()=>setAuthScreen("signup")} style={{background:"none",border:"none",color:"#1a56ff",cursor:"pointer",fontSize:12,fontWeight:600}}>Sign up</button></span>
           : <span>Already have an account? <button onClick={()=>setAuthScreen("signin")} style={{background:"none",border:"none",color:"#1a56ff",cursor:"pointer",fontSize:12,fontWeight:600}}>Sign in</button></span>
         }
+      </div>
+    </div>
+  );
+
+  if (!isSubscribed) return (
+    <div style={{...s, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"100vh", gap:24, padding:20, textAlign:"center"}}>
+      <div style={{fontSize:28, fontWeight:700, fontFamily:"'League Spartan',sans-serif", letterSpacing:1}}>Make My Pin</div>
+      <div style={{background:"#fff", borderRadius:16, padding:"32px 28px", maxWidth:380, width:"100%", boxShadow:"0 4px 24px rgba(0,0,0,0.08)"}}>
+        <div style={{fontSize:18, fontWeight:700, marginBottom:8}}>Start Creating</div>
+        <div style={{fontSize:13, color:"#888", marginBottom:24, lineHeight:1.6}}>Get unlimited access to all 5 templates and create beautiful Pinterest pins in seconds.</div>
+        <div style={{fontSize:32, fontWeight:900, fontFamily:"'League Spartan',sans-serif", marginBottom:4}}>$9.99<span style={{fontSize:14, fontWeight:400, color:"#888"}}>/month</span></div>
+        <div style={{fontSize:12, color:"#aaa", marginBottom:24}}>Cancel anytime</div>
+        <button onClick={handleSubscribe} disabled={subscribing}
+          style={{width:"100%", background:"#1a1a1a", color:"#fff", border:"none", borderRadius:10, padding:"14px", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"'League Spartan',sans-serif", letterSpacing:1}}>
+          {subscribing ? "Loading..." : "Subscribe Now →"}
+        </button>
+      </div>
+      <div style={{display:"flex", alignItems:"center", gap:8}}>
+        <UserButton afterSignOutUrl="/" />
+        <span style={{fontSize:12, color:"#aaa"}}>Signed in as {user?.primaryEmailAddress?.emailAddress}</span>
       </div>
     </div>
   );
