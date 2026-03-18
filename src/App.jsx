@@ -447,6 +447,7 @@ export default function App() {
     link.click();
   };
 
+  const isMobile = useWindowSize();
   const s = { fontFamily:"'Montserrat',sans-serif", minHeight:"100vh", background:"#f9f9f7", color:"#1a1a1a" };
 
   if (screen === "select") return (
@@ -463,8 +464,6 @@ export default function App() {
     </div>
   );
 
-  const isMobile = useWindowSize();
-
   return (
     <div style={s}>
       <div style={{padding:"12px 16px", borderBottom:"1px solid #eee", background:"#fff", display:"flex", alignItems:"center", gap:12}}>
@@ -474,19 +473,8 @@ export default function App() {
 
       <div style={{display:"flex", flexDirection: isMobile ? "column" : "row", gap:0}}>
 
-        {/* Canvas on top for mobile */}
-        {isMobile && (
-          <div style={{width:"100%", display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 16px 8px", background:"#f9f9f7", gap:8}}>
-            <canvas ref={canvasRef} width={W} height={H}
-              style={{borderRadius:12, display:"block", boxShadow:"0 4px 20px rgba(0,0,0,0.12)", cursor:"grab", width:"100%", maxWidth:"340px", height:"auto"}}
-              onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp}
-              onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onMouseUp} />
-            <p style={{fontSize:11,color:"#aaa"}}>{template==="split"||template==="quad" ? "Drag photos to reposition" : "Live preview · 9:16"}</p>
-          </div>
-        )}
-
         {/* Controls */}
-        <div style={{width:"100%", maxWidth: isMobile ? "100%" : 280, padding:16, borderRight: isMobile ? "none" : "1px solid #eee", borderTop: isMobile ? "1px solid #eee" : "none", background:"#fff", display:"flex", flexDirection:"column", gap:14}}>
+        <div style={{width:"100%", maxWidth: isMobile ? "100%" : 280, padding:16, order: isMobile ? 2 : 1, borderRight: isMobile ? "none" : "1px solid #eee", borderTop: isMobile ? "1px solid #eee" : "none", background:"#fff", display:"flex", flexDirection:"column", gap:14}}>
 
           {/* Photo uploads */}
           {["basic","box","seethrough"].includes(template) && (
@@ -594,16 +582,14 @@ export default function App() {
           </button>
         </div>
 
-        {/* Canvas - desktop only */}
-        {!isMobile && (
-          <div style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:20, gap:8, minWidth:0}}>
-            <canvas ref={canvasRef} width={W} height={H}
-              style={{borderRadius:12, display:"block", boxShadow:"0 8px 40px rgba(0,0,0,0.15)", cursor:"grab", width:"100%", maxWidth:"400px", height:"auto"}}
-              onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp}
-              onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onMouseUp} />
-            <p style={{fontSize:11,color:"#aaa"}}>{template==="split"||template==="quad" ? "Drag each photo to reposition" : "Live preview · 9:16"}</p>
-          </div>
-        )}
+        {/* Canvas - always rendered, order changes on mobile */}
+        <div style={{flex:1, order: isMobile ? 1 : 2, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding: isMobile ? "16px 16px 0" : 20, gap:8, minWidth:0, background: isMobile ? "#f9f9f7" : "transparent"}}>
+          <canvas ref={canvasRef} width={W} height={H}
+            style={{borderRadius:12, display:"block", boxShadow:"0 8px 40px rgba(0,0,0,0.15)", cursor:"grab", width:"100%", maxWidth: isMobile ? "340px" : "400px", height:"auto"}}
+            onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp}
+            onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onMouseUp} />
+          <p style={{fontSize:11,color:"#aaa"}}>{template==="split"||template==="quad" ? "Drag each photo to reposition" : "Live preview · 9:16"}</p>
+        </div>
       </div>
     </div>
   );
