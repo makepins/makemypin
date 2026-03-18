@@ -340,7 +340,7 @@ export default function App() {
   }, [screen, template, font, combo, state]);
 
   const openTemplate = (tid) => {
-    setTemplate(tid); setState(initState(tid)); setScreen("editor");
+    setTemplate(tid); setState(initState(tid)); setScreen("editor"); setRepositionMode(false);
   };
 
   const updateState = (key, val) => setState(prev => ({...prev, [key]: val}));
@@ -401,6 +401,8 @@ export default function App() {
     });
   };
 
+  const [repositionMode, setRepositionMode] = useState(false);
+
   const onMouseDown = (e) => {
     const canvas = canvasRef.current; if (!canvas) return;
     const r = canvas.getBoundingClientRect();
@@ -422,6 +424,8 @@ export default function App() {
   const onMouseUp = () => { dragRef.current = {dragging:null, lastMouse:null}; };
 
   const onTouchStart = (e) => {
+    if (!repositionMode) return;
+    e.preventDefault();
     const t = e.touches[0], canvas = canvasRef.current; if (!canvas) return;
     const r = canvas.getBoundingClientRect();
     const cx = (t.clientX-r.left)*(W/r.width), cy = (t.clientY-r.top)*(H/r.height);
@@ -430,6 +434,8 @@ export default function App() {
   };
 
   const onTouchMove = (e) => {
+    if (!repositionMode) return;
+    e.preventDefault();
     const {dragging, lastMouse} = dragRef.current;
     if (dragging === null || dragging === undefined) return;
     const t = e.touches[0], canvas = canvasRef.current; if (!canvas) return;
@@ -585,10 +591,24 @@ export default function App() {
         {/* Canvas - always rendered, order changes on mobile */}
         <div style={{flex:1, order: isMobile ? 1 : 2, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding: isMobile ? "16px 16px 0" : 20, gap:8, minWidth:0, background: isMobile ? "#f9f9f7" : "transparent"}}>
           <canvas ref={canvasRef} width={W} height={H}
-            style={{borderRadius:12, display:"block", boxShadow:"0 8px 40px rgba(0,0,0,0.15)", cursor:"grab", width:"100%", maxWidth: isMobile ? "340px" : "400px", height:"auto"}}
+            style={{borderRadius:12, display:"block", boxShadow:"0 8px 40px rgba(0,0,0,0.15)", cursor: repositionMode ? "grab" : "default", width:"100%", maxWidth: isMobile ? "340px" : "400px", height:"auto",
+              outline: repositionMode ? "3px solid #1a56ff" : "none"}}
             onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp}
             onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onMouseUp} />
-          <p style={{fontSize:11,color:"#aaa"}}>{template==="split"||template==="quad" ? "Drag each photo to reposition" : "Live preview · 9:16"}</p>
+          {isMobile && (
+            <button
+              onClick={() => setRepositionMode(r => !r)}
+              style={{
+                background: repositionMode ? "#1a56ff" : "#f0f0f0",
+                color: repositionMode ? "#fff" : "#444",
+                border: "none", borderRadius: 8, padding: "8px 18px",
+                fontSize: 12, fontWeight: 600, cursor: "pointer",
+                fontFamily: "'Montserrat',sans-serif",
+              }}>
+              {repositionMode ? "✓ Done Repositioning" : "⟳ Reposition Photo"}
+            </button>
+          )}
+          {!isMobile && <p style={{fontSize:11,color:"#aaa"}}>Drag photo to reposition</p>}
         </div>
       </div>
     </div>
