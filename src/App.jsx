@@ -294,11 +294,11 @@ function TemplateThumb({ tid, onClick }) {
     }
   }, [tid]);
   return (
-    <div onClick={onClick} style={{ cursor:"pointer", borderRadius:8, overflow:"hidden", border:"2px solid #e5e5e5", transition:"all 0.15s" }}
-      onMouseEnter={e=>e.currentTarget.style.borderColor="#333"}
-      onMouseLeave={e=>e.currentTarget.style.borderColor="#e5e5e5"}>
+    <div onClick={onClick} style={{ cursor:"pointer", borderRadius:12, overflow:"hidden", border:"2px solid #e8e8e8", transition:"all 0.2s", background:"#fff" }}
+      onMouseEnter={e=>{e.currentTarget.style.borderColor="#0f0f0f"; e.currentTarget.style.transform="translateY(-3px)"; e.currentTarget.style.boxShadow="0 8px 24px rgba(0,0,0,0.12)";}}
+      onMouseLeave={e=>{e.currentTarget.style.borderColor="#e8e8e8"; e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="none";}}>
       <canvas ref={ref} width={240} height={426} style={{display:"block",width:"100%"}} />
-      <div style={{fontSize:10,textAlign:"center",padding:"5px 4px",color:"#666",fontWeight:500}}>{tid.charAt(0).toUpperCase()+tid.slice(1)}</div>
+      <div style={{fontSize:11, textAlign:"center", padding:"8px 4px", color:"#1a1a1a", fontWeight:700, letterSpacing:0.5, background:"#fff"}}>{tid.charAt(0).toUpperCase()+tid.slice(1)}</div>
     </div>
   );
 }
@@ -458,19 +458,21 @@ export default function App() {
   const { isSignedIn, isLoaded, user } = useUser();
   const [authScreen, setAuthScreen] = useState("signin");
   const [subscribing, setSubscribing] = useState(false);
-  const s = { fontFamily:"'Montserrat',sans-serif", minHeight:"100vh", background:"#f9f9f7", color:"#1a1a1a" };
+  const s = { fontFamily:"'Montserrat',sans-serif", minHeight:"100vh", background:"#f4f4f4", color:"#1a1a1a" };
 
   // Check subscription from Clerk metadata OR from Stripe success redirect
   const justPaid = new URLSearchParams(window.location.search).get("subscribed") === "true";
   const isSubscribed = user?.publicMetadata?.subscribed === true || justPaid;
 
-  // If just paid, reload user data from Clerk to get updated metadata
+  // If just paid, immediately update Clerk metadata and clean URL
   useEffect(() => {
     if (justPaid && user) {
-      // Clean URL without reloading
       window.history.replaceState({}, "", "/");
-      // Reload user to get fresh metadata after webhook
-      setTimeout(() => user.reload(), 2000);
+      fetch("/api/confirm-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id }),
+      }).then(() => user.reload());
     }
   }, [justPaid, user]);
 
@@ -535,15 +537,15 @@ export default function App() {
 
   if (screen === "select") return (
     <div style={s}>
-      <div style={{padding:"24px 20px 16px", borderBottom:"1px solid #eee", background:"#fff", display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+      <div style={{padding:"20px 24px", background:"#0f0f0f", display:"flex", alignItems:"center", justifyContent:"space-between"}}>
         <div>
-          <div style={{fontSize:22, fontWeight:700, fontFamily:"'League Spartan',sans-serif", letterSpacing:1}}>Make My Pin</div>
-          <div style={{fontSize:13, color:"#888", marginTop:4}}>Choose a template to get started</div>
+          <div style={{fontSize:22, fontWeight:700, fontFamily:"'League Spartan',sans-serif", letterSpacing:1, color:"#ffffff"}}>Make My Pin</div>
+          <div style={{fontSize:12, color:"#888", marginTop:2}}>Choose a template to get started</div>
         </div>
         <UserButton afterSignOutUrl="/" />
       </div>
-      <div style={{padding:20}}>
-        <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))", gap:12, maxWidth:700, margin:"0 auto"}}>
+      <div style={{padding:"24px 20px"}}>
+        <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))", gap:16, maxWidth:780, margin:"0 auto"}}>
           {TEMPLATES.map(t => <TemplateThumb key={t.id} tid={t.id} onClick={()=>openTemplate(t.id)} />)}
         </div>
       </div>
@@ -552,10 +554,10 @@ export default function App() {
 
   return (
     <div style={s}>
-      <div style={{padding:"12px 16px", borderBottom:"1px solid #eee", background:"#fff", display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+      <div style={{padding:"14px 20px", background:"#0f0f0f", display:"flex", alignItems:"center", justifyContent:"space-between"}}>
         <div style={{display:"flex", alignItems:"center", gap:12}}>
-          <button onClick={()=>setScreen("select")} style={{background:"none",border:"1px solid #ddd",borderRadius:8,padding:"6px 12px",fontSize:12,cursor:"pointer",color:"#666"}}>← Templates</button>
-          <span style={{fontSize:14,fontWeight:600,fontFamily:"'League Spartan',sans-serif"}}>{TEMPLATES.find(t=>t.id===template)?.name}</span>
+          <button onClick={()=>setScreen("select")} style={{background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, padding:"7px 14px", fontSize:12, cursor:"pointer", color:"#fff", fontFamily:"'Montserrat',sans-serif", fontWeight:500}}>← Templates</button>
+          <span style={{fontSize:14, fontWeight:700, fontFamily:"'League Spartan',sans-serif", color:"#ffffff", letterSpacing:0.5}}>{TEMPLATES.find(t=>t.id===template)?.name}</span>
         </div>
         <UserButton afterSignOutUrl="/" />
       </div>
@@ -563,27 +565,27 @@ export default function App() {
       <div style={{display:"flex", flexDirection: isMobile ? "column" : "row", gap:0}}>
 
         {/* Controls */}
-        <div style={{width:"100%", maxWidth: isMobile ? "100%" : 280, padding:16, order: isMobile ? 2 : 1, borderRight: isMobile ? "none" : "1px solid #eee", borderTop: isMobile ? "1px solid #eee" : "none", background:"#fff", display:"flex", flexDirection:"column", gap:14}}>
+        <div style={{width:"100%", maxWidth: isMobile ? "100%" : 280, padding:"20px 16px", order: isMobile ? 2 : 1, borderRight: isMobile ? "none" : "1px solid #ebebeb", borderTop: isMobile ? "1px solid #ebebeb" : "none", background:"#fff", display:"flex", flexDirection:"column", gap:18, paddingBottom:32}}>
 
           {/* Photo uploads */}
           {["basic","box","seethrough"].includes(template) && (
             <div>
-              <div style={{fontSize:10,letterSpacing:3,color:"#999",textTransform:"uppercase",marginBottom:6,fontWeight:500}}>Photo</div>
-              <label style={{display:"block",border:"1.5px dashed #ddd",borderRadius:8,padding:14,textAlign:"center",cursor:"pointer",background:"#fafafa"}}>
-                <div style={{fontSize:20}}>↑</div>
-                <div style={{fontSize:11,color:"#999",marginTop:3}}>{state.img ? "✓ Loaded · drag to reposition" : "Tap to upload"}</div>
+              <div style={{fontSize:11,letterSpacing:2,color:"#333",textTransform:"uppercase",marginBottom:8,fontWeight:700}}>Photo</div>
+              <label style={{display:"block",border:"2px dashed #d0d0d0",borderRadius:10,padding:16,textAlign:"center",cursor:"pointer",background:"#fafafa",transition:"all 0.2s"}}>
+                <div style={{fontSize:22, marginBottom:4}}>↑</div>
+                <div style={{fontSize:12,color:state.img?"#22c55e":"#666",fontWeight:500}}>{state.img ? "✓ Photo loaded" : "Tap to upload photo"}</div>
                 <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>loadFile(e.target.files[0],"img")} />
               </label>
             </div>
           )}
 
           {template==="split" && (
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
               {["Top Photo","Bottom Photo"].map((label,i) => (
                 <div key={i}>
-                  <div style={{fontSize:10,letterSpacing:3,color:"#999",textTransform:"uppercase",marginBottom:6,fontWeight:500}}>{label}</div>
-                  <label style={{display:"block",border:"1.5px dashed #ddd",borderRadius:8,padding:10,textAlign:"center",cursor:"pointer",background:"#fafafa"}}>
-                    <div style={{fontSize:11,color:"#999"}}>{(i===0?state.img1:state.img2) ? "✓ Loaded" : "↑ Tap to upload"}</div>
+                  <div style={{fontSize:11,letterSpacing:2,color:"#333",textTransform:"uppercase",marginBottom:8,fontWeight:700}}>{label}</div>
+                  <label style={{display:"block",border:"2px dashed #d0d0d0",borderRadius:10,padding:12,textAlign:"center",cursor:"pointer",background:"#fafafa"}}>
+                    <div style={{fontSize:12,color:(i===0?state.img1:state.img2)?"#22c55e":"#666",fontWeight:500}}>{(i===0?state.img1:state.img2) ? "✓ Loaded" : "↑ Tap to upload"}</div>
                     <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>loadFile(e.target.files[0],i===0?"img1":"img2")} />
                   </label>
                 </div>
@@ -593,12 +595,12 @@ export default function App() {
 
           {template==="quad" && (
             <div>
-              <div style={{fontSize:10,letterSpacing:3,color:"#999",textTransform:"uppercase",marginBottom:8,fontWeight:500}}>4 Photos</div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+              <div style={{fontSize:11,letterSpacing:2,color:"#333",textTransform:"uppercase",marginBottom:8,fontWeight:700}}>4 Photos</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
                 {["Top Left","Top Right","Bot Left","Bot Right"].map((label,i) => (
-                  <label key={i} style={{display:"block",border:"1.5px dashed #ddd",borderRadius:8,padding:8,textAlign:"center",cursor:"pointer",background:"#fafafa"}}>
-                    <div style={{fontSize:9,color:"#aaa",marginBottom:2,textTransform:"uppercase",letterSpacing:1}}>{label}</div>
-                    <div style={{fontSize:11,color:"#999"}}>{state.imgs[i] ? "✓" : "↑ Upload"}</div>
+                  <label key={i} style={{display:"block",border:"2px dashed #d0d0d0",borderRadius:10,padding:10,textAlign:"center",cursor:"pointer",background:"#fafafa"}}>
+                    <div style={{fontSize:10,color:"#555",marginBottom:3,textTransform:"uppercase",letterSpacing:1,fontWeight:600}}>{label}</div>
+                    <div style={{fontSize:12,color:state.imgs[i]?"#22c55e":"#666",fontWeight:500}}>{state.imgs[i] ? "✓" : "↑ Upload"}</div>
                     <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>loadFile(e.target.files[0],"",true,i)} />
                   </label>
                 ))}
@@ -635,13 +637,15 @@ export default function App() {
 
           {/* Color combos */}
           <div>
-            <div style={{fontSize:10,letterSpacing:3,color:"#999",textTransform:"uppercase",marginBottom:8,fontWeight:500}}>Color</div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:5}}>
+            <div style={{fontSize:11,letterSpacing:2,color:"#333",textTransform:"uppercase",marginBottom:10,fontWeight:700}}>Color</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6}}>
               {COMBOS.map((c,i) => (
                 <button key={i} onClick={()=>setCombo(c)} title={c.name}
-                  style={{background:c.box, color:c.text, border:`2px solid ${combo===c?"#333":c.border}`,
-                    borderRadius:6, padding:"5px 2px", cursor:"pointer", fontSize:8, fontWeight:600,
-                    transform:combo===c?"scale(1.1)":"scale(1)", transition:"all 0.15s"}}>
+                  style={{background:c.box, color:c.text,
+                    border: combo===c ? "3px solid #0f0f0f" : `2px solid ${c.border}`,
+                    borderRadius:8, padding:"6px 2px", cursor:"pointer", fontSize:8, fontWeight:700,
+                    boxShadow: combo===c ? "0 0 0 1px #fff inset" : "none",
+                    transition:"all 0.15s"}}>
                   {c.name.substring(0,4)}
                 </button>
               ))}
@@ -650,13 +654,15 @@ export default function App() {
 
           {/* Fonts */}
           <div>
-            <div style={{fontSize:10,letterSpacing:3,color:"#999",textTransform:"uppercase",marginBottom:8,fontWeight:500}}>Font</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5}}>
+            <div style={{fontSize:11,letterSpacing:2,color:"#333",textTransform:"uppercase",marginBottom:10,fontWeight:700}}>Font</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
               {FONTS.map((f,i) => (
                 <button key={i} onClick={()=>{ document.fonts.load(`900 16px ${f.stack}`).then(()=>setFont(f)); }}
-                  style={{background:font===f?"#1a1a1a":"#f5f5f5", color:font===f?"#fff":"#444",
-                    border:"1px solid #ddd", borderRadius:6, padding:"7px 4px", cursor:"pointer",
-                    fontSize:10, fontFamily:f.stack, transition:"all 0.15s"}}>
+                  style={{background:font===f?"#0f0f0f":"#f5f5f5", color:font===f?"#fff":"#333",
+                    border: font===f ? "2px solid #0f0f0f" : "2px solid #e0e0e0",
+                    borderRadius:8, padding:"9px 4px", cursor:"pointer",
+                    fontSize:11, fontFamily:f.stack, fontWeight: font===f ? 700 : 500,
+                    transition:"all 0.15s"}}>
                   {f.name}
                 </button>
               ))}
@@ -664,9 +670,10 @@ export default function App() {
           </div>
 
           <button onClick={download}
-            style={{background:"#1a1a1a",color:"#fff",border:"none",borderRadius:8,padding:"13px",
-              fontSize:12,fontWeight:600,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",
-              fontFamily:"'League Spartan',sans-serif"}}>
+            style={{background:"#0f0f0f", color:"#fff", border:"none", borderRadius:10, padding:"15px",
+              fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"'League Spartan',sans-serif",
+              letterSpacing:1.5, textTransform:"uppercase", marginTop:4,
+              boxShadow:"0 4px 12px rgba(0,0,0,0.15)"}}>
             ↓ Download Pin
           </button>
         </div>
@@ -682,13 +689,15 @@ export default function App() {
             <button
               onClick={() => setRepositionMode(r => !r)}
               style={{
-                background: repositionMode ? "#1a56ff" : "#f0f0f0",
-                color: repositionMode ? "#fff" : "#444",
-                border: "none", borderRadius: 8, padding: "8px 18px",
-                fontSize: 12, fontWeight: 600, cursor: "pointer",
+                background: repositionMode ? "#0f0f0f" : "#fff",
+                color: repositionMode ? "#fff" : "#333",
+                border: "2px solid #0f0f0f",
+                borderRadius: 9, padding: "9px 20px",
+                fontSize: 12, fontWeight: 700, cursor: "pointer",
                 fontFamily: "'Montserrat',sans-serif",
+                letterSpacing: 0.5,
               }}>
-              {repositionMode ? "✓ Done Repositioning" : "⟳ Reposition Photo"}
+              {repositionMode ? "✓ Done" : "⟳ Reposition Photo"}
             </button>
           )}
           {!isMobile && <p style={{fontSize:11,color:"#aaa"}}>Drag photo to reposition</p>}
@@ -699,14 +708,20 @@ export default function App() {
 }
 
 function Field({ label, value, onChange, placeholder, optional, textarea }) {
-  const labelStyle = {fontSize:10,letterSpacing:3,color:"#999",textTransform:"uppercase",marginBottom:6,fontWeight:500};
-  const inputStyle = {width:"100%",background:"#fafafa",border:"1px solid #eee",borderRadius:8,padding:"8px 10px",fontSize:12,fontFamily:"'Montserrat',sans-serif",outline:"none",color:"#1a1a1a"};
+  const labelStyle = {fontSize:11, letterSpacing:2, color:"#333", textTransform:"uppercase", marginBottom:7, fontWeight:700, display:"block"};
+  const inputStyle = {width:"100%", background:"#fff", border:"2px solid #e0e0e0", borderRadius:9, padding:"10px 12px", fontSize:13, fontFamily:"'Montserrat',sans-serif", outline:"none", color:"#1a1a1a", transition:"border-color 0.2s"};
   return (
     <div>
-      <div style={labelStyle}>{label}{optional && <span style={{fontSize:9,color:"#bbb",marginLeft:5,letterSpacing:1}}>OPTIONAL</span>}</div>
+      <label style={labelStyle}>{label}{optional && <span style={{fontSize:10,color:"#aaa",marginLeft:6,letterSpacing:1,fontWeight:400}}>optional</span>}</label>
       {textarea
-        ? <textarea value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} rows={2} style={{...inputStyle,resize:"vertical",lineHeight:1.5}} />
-        : <input type="text" value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} maxLength={80} style={inputStyle} />
+        ? <textarea value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} rows={2}
+            style={{...inputStyle, resize:"vertical", lineHeight:1.5}}
+            onFocus={e=>e.target.style.borderColor="#0f0f0f"}
+            onBlur={e=>e.target.style.borderColor="#e0e0e0"} />
+        : <input type="text" value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} maxLength={80}
+            style={inputStyle}
+            onFocus={e=>e.target.style.borderColor="#0f0f0f"}
+            onBlur={e=>e.target.style.borderColor="#e0e0e0"} />
       }
     </div>
   );
